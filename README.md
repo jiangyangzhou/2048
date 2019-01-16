@@ -9,5 +9,5 @@ Using gaide of cu2048mtcl:
 nvcc mt_2048.cu -0 mt.exe   (for windows, if linux, just similar)
 python2 cu2048mtcl
 ```
-if work fine, you can get result like this:
+if work fine, you can get result like this:  
 ![4096](https://github.com/jiangyangzhou/2048/blob/master/4096.JPG)
