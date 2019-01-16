@@ -8,20 +8,23 @@
 using namespace std;
 __device__ int combine(int * l_state, int turn){
     int score=0;
-    bool if_move=false; 
-
+    bool can_move=false; 
+    bool if_move=false;
     if (turn==0){ //left
         for(int i=0;i<4;i++){
             for(int t=0;t<3;t++){
-                int j =0, k=0;
+                int j =0, k=0; 
+                can_move=false;
                 if(t!=1){
                     for(j=0;j<4;j++){
                         if(l_state[4*i+j]!=0){
                             l_state[4*i+k]=l_state[4*i+j];
                             k++;
+                            if(can_move) if_move=true;
                         }
+                        else can_move=true;
                     }
-                    while(k<4){l_state[4*i+k]=0; k++; if_move = true;}
+                    while(k<4){l_state[4*i+k]=0; k++;}
                 }
                 else
                     for(j=0;j<3;j++){
@@ -39,15 +42,17 @@ __device__ int combine(int * l_state, int turn){
         for(int j=0;j<4;j++){
             for(int t=0;t<3;t++){
                 int i =3, k=3;
+                can_move=false;
                 if(t!=1){
                     for(i=3;i>=0;i--){
                         if(l_state[4*i+j]!=0){
                             l_state[4*k+j]=l_state[4*i+j];
                             k--;
-
+                            if(can_move) if_move=true;
                         }
+                        else can_move=true;
                     }
-                    while(k>=0){l_state[4*k+j]=0; k--; if_move = true;}
+                    while(k>=0){l_state[4*k+j]=0; k--;}
                 }
                 else
                     for(i=3;i>=0;i--){
@@ -65,14 +70,17 @@ __device__ int combine(int * l_state, int turn){
         for(int i=0;i<4;i++){
             for(int t=0;t<3;t++){
                 int j =3, k=3;
+                can_move=false;
                 if(t!=1){
                     for(j=3;j>=0;j--){
                         if(l_state[4*i+j]!=0){
                             l_state[4*i+k]=l_state[4*i+j];
                             k--;
+                            if(can_move) if_move=true;
                         }
+                        else can_move=true;
                     }
-                    while(k>=0){l_state[4*i+k]=0; k--; if_move = true;}
+                    while(k>=0){l_state[4*i+k]=0; k--;}
                 }
                 else
                     for(j=3;j>0;j--)
@@ -89,14 +97,18 @@ __device__ int combine(int * l_state, int turn){
         for(int j=0;j<4;j++){
             for(int t=0;t<3;t++){
                 int i =0, k=0;
+                can_move=false;
                 if(t!=1){
                     for(i=0;i<4;i++){
                         if(l_state[4*i+j]!=0){
                             l_state[4*k+j]=l_state[4*i+j];
                             k++;
+                            if(can_move) if_move=true;
                         }
+                        else can_move=true;
+                        
                     }
-                    while(k<4){l_state[4*k+j]=0; k++; if_move = true;}
+                    while(k<4){l_state[4*k+j]=0; k++;}
                 }
                 else
                     for(i=0;i<3;i++){
@@ -110,6 +122,7 @@ __device__ int combine(int * l_state, int turn){
             }
         }
     }
+    if(if_move==false && score==0) score=-1;
     return score;
 }
 
@@ -123,7 +136,8 @@ __device__ int judge_over(const int *state)
     for(int i=0;i<4;i++){
         for(int j=0;j<4;j++){
             if(state[4*i+j]==0) zero_num+=1;
-            if(i<3 && j<3 && (state[4*i+j]==state[4*i+j+1] || state[4*i+j]==state[4*(i+1)+j]))
+            if((j<3 && state[4*i+j]==state[4*i+j+1]) ||
+                (i<3 && state[4*i+j]==state[4*(i+1)+j]))
                 can_combine=true;
         }
     }
@@ -131,7 +145,7 @@ __device__ int judge_over(const int *state)
         if(!can_combine) return -1;
         else return zero_num;
     }            
-    return true;
+    return zero_num;
 }
 
 __device__ curandState newBlock(int * state, curandState curand_state, int No)
@@ -158,6 +172,14 @@ __device__ void print_array(int *array, int size){
     printf("\n");
 }
 
+__device__ void print_array_2d(int *array, int x_size, int y_size){
+    for(int i=0; i<x_size; i++){
+        for(int j=0; j<y_size; j++)
+            printf("%d, ",array[4*i+j]);
+        printf("\n");
+    }
+    //printf("\n");
+}
 __global__ void run_2048(const int * d_state, int *d_result, int search_depth, long seed ){
     int No = blockIdx.x * blockDim.x + threadIdx.x; 
 
@@ -177,27 +199,33 @@ __global__ void run_2048(const int * d_state, int *d_result, int search_depth, l
     int turn =0;
     int zero_num=16;
 
+    zero_num = judge_over(l_state);
     while(depth && zero_num!=-1)
     {           
-        zero_num = judge_over(l_state);
-        if(zero_num>0)
-            curand_state=newBlock(l_state, curand_state,No);
+        //if(No==0){printf("After new: turn:%d  \n",turn); print_array_2d(l_state,4,4);}
         turn = init_state%4;
         init_state/=4;
         depth-=1;
         result=combine(l_state, turn);
-        score+=result;
+        if(result==-1 && depth==search_depth-1) score-=100;
+        zero_num = judge_over(l_state);
+        score+=result*(result>0);
+        if(zero_num>0 && result!=-1)
+            curand_state=newBlock(l_state, curand_state,No);
+        //if(No==0){printf("turn:%d score:%d \n",turn,score); print_array_2d(l_state,4,4);}
     }
 
     int count=0;
     while(zero_num!=-1){
         count+=1;
-        zero_num= judge_over(l_state);
-        if(zero_num>0)
-            curand_state=newBlock(l_state, curand_state,No);
+        //if(No==0){printf("After new: turn:%d  \n",turn); print_array_2d(l_state,4,4);}
         turn = curand(&curand_state)%4;
         result=combine(l_state, turn);
-        score+=result;
+        score+=result*(result>0);
+        //if(No==0){printf("turn:%d score:%d \n",turn,score); print_array_2d(l_state,4,4);}
+        zero_num= judge_over(l_state);
+        if(zero_num>0 && result!=-1)
+            curand_state=newBlock(l_state, curand_state,No);
     }
     atomicAdd(&(d_result[tid]),score);
     
@@ -222,7 +250,7 @@ void print_array2(int *array, int size){
     printf("\n");
 }
 
-int get_best_turn(int *h_state, int exp_num=1000, int search_depth=2){
+int get_best_turn(int *h_state, int exp_num=5000, int search_depth=2, bool print_flag=true){
     int *d_state;
     //int h_state[16]={0};
 
@@ -250,7 +278,7 @@ int get_best_turn(int *h_state, int exp_num=1000, int search_depth=2){
 
     cudaMemcpy(h_result, d_result, RESULT_BYTES, cudaMemcpyDeviceToHost);
 
-    int max=0;
+    int max=-10000000;
     int best_way=0;
     for(int i=0;i<search_kinds;i++){
         if(h_result[i]>max){
@@ -261,10 +289,11 @@ int get_best_turn(int *h_state, int exp_num=1000, int search_depth=2){
 
     int best_turn = best_way%4;
 
-    print_array2(h_result, search_kinds);
-
-    printf("Best way is %d , Best score = %d , Best turn is %d \n", 
+    if(print_flag){
+        print_array2(h_result, search_kinds);
+        printf("Best way is %d , Best score = %d , Best turn is %d \n", 
                 best_way, h_result[best_way], best_turn);
+    }
 
     cudaFree(d_state);
     cudaFree(d_result);
@@ -274,8 +303,6 @@ int get_best_turn(int *h_state, int exp_num=1000, int search_depth=2){
 
 int main(int argc,char *argv[]){
  //   printf("Total amount of global memory: %d bytes",deviceProp.total)
-
-
     GpuTimer timer;
 
     int *d_state;
@@ -286,7 +313,7 @@ int main(int argc,char *argv[]){
     cudaMemset((void **) d_state, 0, ARRAY_BYTES);
 
     long clock_for_rand = clock();
-    cout<<"get arg num is "<<argc<<endl;
+    //cout<<"get arg num is "<<argc<<endl;
 
     int i=0, k=0;
     while(argc>1 && argv[1][i]!='\0')
@@ -300,16 +327,29 @@ int main(int argc,char *argv[]){
         }
         i=i+1;
     }
-    cout<<"input h_state is:";
-    print_array2(h_state,16);
+    bool print_flag=true;
+    if (argc>2 && argv[2][0]=='1') print_flag=false;
 
+    int exp_num = 3000;
+    int search_depth=2;
+    if (argc>3){
+        exp_num=0; int i=0;  
+        while(argv[3][i]!='\0'){
+            exp_num=exp_num*10+argv[3][i]-'0';
+            i++;
+        }
+    }
 
+    if(argc>4) search_depth = argv[4][0]-'0';
     timer.Start();
-    get_best_turn(h_state,10000,2);
+    int best_turn = get_best_turn(h_state, exp_num, search_depth, print_flag);
     timer.Stop();
 
     //cudaMemcpy(h_state, d_state, ARRAY_BYTES, cudaMemcpyDeviceToHost);
-
-    printf("Time elapsed = %g ms\n", timer.Elapsed());
-    return 0;
+   if(print_flag){
+        cout<<"input h_state is:";
+        print_array2(h_state,16);
+        printf("Time elapsed = %g ms\n", timer.Elapsed());
+    }
+    return best_turn;
 }
