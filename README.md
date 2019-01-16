@@ -6,7 +6,7 @@ Operation Gaide: using direction key.
 I add a .cu version of 2048. I think it should run faster
 Using gaide of cu2048mtcl:
 ```
-nvcc mt_2048.cu -0 mt.exe   (for windows, if linux, just similar)
+nvcc mt_2048.cu -o mt.exe   (for windows, if linux, just similar)
 python2 cu2048mtcl
 ```
 if work fine, you can get result like this:  
