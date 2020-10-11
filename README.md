@@ -1,5 +1,5 @@
 # 2048 Solver
-2048 in Python 2.7 with module Tkinter;  
+2048 in Python 2/3 with module Tkinter;  
 Solve 2048 with Monte Carlo method.
 
 ### Solver Method 
@@ -26,6 +26,8 @@ if you want to call mt_2048.cu directly, you can do like this:
  # forth arg: search depth
  ```
  
+ #### About nvcc
+ I have to admit it's not easy to compile .cu file with nvcc tool, I meet some problem rebuild this project after buying a new laptop. But it's easy to run with my prebuild mt.exe. You can try this program first. And after I build this project successfully, I would add a nvcc compiling tutorial here. 
  
  
     
