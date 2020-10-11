@@ -1,6 +1,12 @@
-from Tkinter import *
+try:
+    import Tkinter as tk
+except:
+    import tkinter as tk
 from random import randrange
-from tkMessageBox import *
+try:
+    from tkinter import messagebox
+except:
+    import Tkinter.tkMessageBox as messagebox
 from threading import Thread
 from multiprocessing import Pool
 import ctypes
@@ -8,15 +14,15 @@ import os
 
 class _2048Draw:
     def __init__(self,block,score):
-        self.block=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+        self.block = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
         copyBlock(self.block,block)
-        self.b=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-        self.root=Tk()
-        self.a=Label(self.root,text='2048')
+        self.b = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+        self.root = tk.Tk()
+        self.a = tk.Label(self.root,text='2048')
         self.a.pack()
-        self.c=Canvas(height=350,width=320,bg='white')
+        self.c=tk.Canvas(height=350,width=320,bg='white')
         self.c.pack()
-        self.f=Frame(self.root,width=300,height=300)
+        self.f=tk.Frame(self.root,width=300,height=300)
         self.f.place(x=30,y=50)
         self.Rec=self.c.create_rectangle(10,10,310,310,fill='lightgrey',outline='gray')
         self.score=score      
@@ -26,7 +32,7 @@ class _2048Draw:
         self.num=0
         for i in range(4):
             for j in range(4):
-                self.b[i][j]=Button(self.f,bg='gray',width=8,height=3,state='disabled')
+                self.b[i][j]=tk.Button(self.f,bg='gray',width=8,height=3,state='disabled')
                 self.b[i][j].grid(row=i,column=j)                  
         
     def getNewBlock(self):
@@ -329,11 +335,11 @@ def mtcl2048(block):
     dic2={0:0, 2:1,4:2,8:3,16:4,32:5,64:6,128:7,256:8,512:9,
             1024:10,2048:11,4096:12,8192:13}
     for i in range(16):
-        str+="%d,"%dic2[block[i/4][i%4]]
+        str+="%d,"%dic2[block[i//4][i%4]]
     str = str[:-1]
     args = "mt.exe %s 1"%str
     result = os.system(args)
-    print args,"  ",result
+    print(args,"  ",result)
     #in .cu: 0:left, 1:down, 2:right, 3:up
     #in .py: 0:left, 1:up, 2:right, 3:down
     turn_list = [0,3,2,1]
@@ -365,6 +371,8 @@ def do():
         score=mygame.score
         draw2048.score=mygame.score
         draw2048.display()     
-    showinfo("2048","Game Over!"+str(score))
+    messagebox.showinfo("2048","Game Over!"+str(score))
+
+
         
 do()
