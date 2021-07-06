@@ -11,6 +11,7 @@ from threading import Thread
 from multiprocessing import Pool
 import ctypes
 import os
+import argparse
 
 class _2048Draw:
     def __init__(self,block,score):
@@ -330,16 +331,16 @@ class AI2048:
     
 
 
-def mtcl2048(block):
+def mtcl2048(block, args):
     str=""
     dic2={0:0, 2:1,4:2,8:3,16:4,32:5,64:6,128:7,256:8,512:9,
             1024:10,2048:11,4096:12,8192:13}
     for i in range(16):
         str+="%d,"%dic2[block[i//4][i%4]]
     str = str[:-1]
-    args = "mt.exe %s 1"%str
-    result = os.system(args)
-    print(args,"  ",result)
+    mc_args = "%s %s 1 %d %d"%(args.mc_exe, str, args.exp_num, args.search_depth)
+    result = os.system(mc_args)
+    print(mc_args,"  ",result)
     #in .cu: 0:left, 1:down, 2:right, 3:up
     #in .py: 0:left, 1:up, 2:right, 3:down
     turn_list = [0,3,2,1]
@@ -347,7 +348,7 @@ def mtcl2048(block):
     return turn_list[result]
        
     
-def do():
+def do(args):
     #lib = ctypes.cdll.LoadLibrary("mtcl2048.dll")
     block=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
     score=0
@@ -364,15 +365,21 @@ def do():
             turn=ai2048.assess(100,5,5,10)
         else:
             #turn=ai2048.tryMove(50)
-            turn = mtcl2048(block)
+            turn = mtcl2048(block, args)
         mygame.operate(turn)
         copyBlock(block,mygame.block)
         copyBlock(draw2048.block,block)
         score=mygame.score
         draw2048.score=mygame.score
         draw2048.display()     
-    messagebox.showinfo("2048","Game Over!"+str(score))
+    messagebox.showinfo("2048","Game Over! "+str(score))
 
 
-        
-do()
+if __name__=="__main__":     
+    parser = argparse.ArgumentParser(description='Monte Carlo method for 2048 game Solver (.cu & .cpp implement available)')
+    parser.add_argument('--mc_exe', type=str, default="mc_cu.exe", metavar='E', 
+                        help='executable file for mc test.  (cu: mc_cu.exe or cpp:mc_cpp.exe for win) ')
+    parser.add_argument('--search_depth', type=int, default=2, help="Means test 4^search_depth turns")
+    parser.add_argument('--exp_num', type=int, default=3000, help="experiment times for each turn.")
+    args = parser.parse_args()
+    do(args)
