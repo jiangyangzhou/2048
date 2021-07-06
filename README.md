@@ -39,10 +39,10 @@ if you want to call mt_2048.cu directly, you can do like this:
  |3000\*4^2|-             |2.28   |  0.162  |
  |3000\*4^3|-             |10.61   |  0.411  |  
    
- Note that python version implement is different, might the algorithm itself is slower.
+ Note that python version implement is different, might the algorithm itself is slower.   
  My Handware: 　　
- CPU:Intel(R) Core(TM) i5-1035G1 CPU @ 1.00GHz   1.19 GHz　　
- GPU: Geforce MX350
+ CPU:Intel(R) Core(TM) i5-1035G1 CPU @ 1.00GHz   1.19 GHz　　  
+ GPU: Geforce MX350  
  
  
  
