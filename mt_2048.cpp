@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <time.h>
 
 using namespace std;
 
@@ -219,7 +220,7 @@ void runGame(const int *d_state, int *d_result, int search_depth, int tid) {
         zero_num = isOver(l_state);
         if (zero_num > 0 && result != -1) newBlock(l_state);
     }
-    d_result[tid] = score;
+    d_result[tid] += score;
 }
 
 void printArray(int *array, int size) {
@@ -264,6 +265,8 @@ int getBestRun(int *h_state, int exp_num = 5000, int search_depth = 2,
 }
 
 int main(int argc, char *argv[]) {
+    clock_t start, end;
+    start = clock();
     srand(time(nullptr));
     int *d_state;
     int h_state[16] = {0};
@@ -300,11 +303,12 @@ int main(int argc, char *argv[]) {
         search_depth = argv[4][0] - '0';
     }
     int best_turn = getBestRun(h_state, exp_num, search_depth, print_flag);
-
+    end = clock();
     if (print_flag) {
         cout << "input h_state is:";
         printArray(h_state, 16);
+        printf("Best_turn: %d, time:%lf s.\n", best_turn, (double)(end-start)/CLOCKS_PER_SEC);
+
     }
-    printf("%d\n", best_turn);
     return best_turn;
 }
