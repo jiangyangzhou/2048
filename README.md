@@ -7,9 +7,9 @@ Monto-carlo Sover with cuda / c++ / pure python!
 To solve a 2048 game, you don't need to design complex heuristic function, or design a complex reinforce algorithm. Only with monto-carlo method, 2048 AI can achieve 4096!  
 
 #### Monto-carlo Method  
-For every step, Choose Up/Down/Left/Right for next step, and run the game randomly for many times, and see which direction can get higher scores. That is Monto-carlo method.  
-I first achieve Python version 2048 solver, however python is too slow, and I can only run 30 times for each turns. But Python version can achieve 2048 as well.  
-I try cuda to accelerate my codes. And it can run 1000 times for 64(4x4x4, 3depth) cases, and it can achieve 4096.
+For every step, MC choose four turns(Up/Down/Left/Right) for next step, run the game randomly for many times, and see which direction could get higher scores. That is Monto-carlo method.  
+I first implement Python version 2048 solver, however python is too slow, and I could only run 30 times for each turns. While Python version can achieve 2048 as well.  
+I tried cuda to accelerate my codes. And it could run 1000 trials for 64(4x4x4) cases, and it gets 4096.
 
 #### Using guide of cu2048mtcl:
 ```
